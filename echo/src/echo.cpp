@@ -9,6 +9,7 @@
 #include <muduo/base/Logging.h>
 
 #include <functional>
+#include <tuple>
 
 using namespace std::placeholders; // for _1, _2, _3
 
@@ -32,9 +33,40 @@ void EchoServer::onConnection(const muduo::net::TcpConnectionPtr& conn)
         << conn->localAddress().toIpPort() << " is " << (conn->connected() ? "UP" : "DOWN");
 }
 
+auto toggleCase = [](int ch)
+{
+    if (ch >= 'A' && ch <= 'Z')
+    {
+        ch = tolower(ch);
+    }
+    else if (ch >= 'a' && ch <= 'z')
+    {
+        ch = toupper(ch);
+    }
+    return ch;
+};
+
+auto rot13 = [](int ch)
+{
+    if (ch >= 'A' && ch <= 'Z')
+    {
+        ch = ch + 13 > 'Z' ? ch - 13 : ch + 13;
+    }
+    else if (ch >= 'a' && ch <= 'z')
+    {
+        ch = ch + 13 > 'z' ? ch - 13 : ch + 13;
+    }
+    return ch;
+};
+
 void EchoServer::onMessage(const muduo::net::TcpConnectionPtr& conn, muduo::net::Buffer* buf, muduo::Timestamp time)
 {
     muduo::string msg(buf->retrieveAllAsString());
     LOG_INFO << conn->name() << " echo " << msg.size() << " bytes, " << "data received at " << time.toString();
+    //convert uppercase to lowercase and convert lowercase to uppercase
+    //transform(msg.begin(), msg.end(), msg.begin(), toggleCase);
+    
+    //rot13
+    transform(msg.begin(), msg.end(), msg.begin(), rot13);
     conn->send(msg);
 }
