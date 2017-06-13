@@ -21,10 +21,10 @@
 #include <functional>
 #include <memory>
 
-//#ifndef NDEBUG
-//#include <boost/static_assert.hpp>
-//#include <boost/type_traits/is_base_of.hpp>
-//#endif
+#ifndef NDEBUG
+#include <boost/static_assert.hpp>
+#include <boost/type_traits/is_base_of.hpp>
+#endif
 
 #ifndef NDEBUG
 #include <cassert>
@@ -46,13 +46,13 @@ public:
 template <typename T>
 class CallbackT : public Callback
 {
-//#ifndef NDEBUG
-//    BOOST_STATIC_ASSERT((boost::is_base_if<google::protobuf::Message, T>::value));
-//#endif
-    
 #ifndef NDEBUG
-    static_assert(std::is_base_if<google::protobuf::Message, T>::value);
+    BOOST_STATIC_ASSERT((boost::is_base_of<google::protobuf::Message, T>::value));
 #endif
+    
+//#ifndef NDEBUG
+    //static_assert((std::is_base_of<google::protobuf::Message, T>::value));
+//#endif
 public:
     typedef std::function<void (const muduo::net::TcpConnectionPtr&,
                                 const std::shared_ptr<T>& message,
@@ -62,7 +62,7 @@ public:
         : callback_(callback)
     {}  // no content
 
-    virtual void onMessage(const Muduo::net::TcpConnectionPtr& conn,
+    virtual void onMessage(const muduo::net::TcpConnectionPtr& conn,
                            const MessagePtr& message,
                            muduo::Timestamp receiveTime) const
     {
@@ -74,3 +74,45 @@ public:
 private:
     ProtobufMessageTCallback callback_;
 };
+
+class ProtobufDispatcher
+{
+public:
+    typedef std::function<void (const muduo::net::TcpConnectionPtr&,
+                                const MessagePtr& message,
+                                muduo::Timestamp)> ProtobufMessageCallback;
+
+    explicit ProtobufDispatcher(const ProtobufMessageCallback& defaultCb)
+    : defaultCallback_(defaultCb)
+    {}  // no content
+
+    void onProtobufMessage(const muduo::net::TcpConnectionPtr& conn,
+                           const MessagePtr& message,
+                           muduo::Timestamp receiveTime) const
+    {
+        CallbackMap::const_iterator it = callbacks_.find(message->GetDescriptor());
+        if (it != callbacks_.end())
+        {
+            it->second->onMessage(conn, message, receiveTime);
+        }
+        else
+        {
+            defaultCallback_(conn, message, receiveTime);
+        }
+    }
+
+    template <typename T>
+    void registerMessageCallback(const typename CallbackT<T>::ProtobufMessageTCallback& callback)
+    {
+        std::shared_ptr<CallbackT<T>> pd(new CallbackT<T>(callback));
+        callbacks_[T::descriptor()] = pd;
+    }
+
+private:
+    typedef std::map<const google::protobuf::Descriptor*, std::shared_ptr<Callback>> CallbackMap;
+
+    CallbackMap callbacks_;
+    ProtobufMessageCallback defaultCallback_;
+};
+
+#endif
