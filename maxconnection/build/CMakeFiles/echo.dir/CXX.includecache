@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/Code/Muduo/maxconnection/echo.h
+muduo/net/TcpServer.h
+-
+
+/home/Code/Muduo/maxconnection/main.cpp
+echo.h
+/home/Code/Muduo/maxconnection/echo.h
+muduo/base/Logging.h
+-
+muduo/net/EventLoop.h
+-
+
