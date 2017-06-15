@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/Code/Muduo/asio/tutorial/timer5.cpp
+muduo/base/Mutex.h
+-
+muduo/net/EventLoop.h
+-
+muduo/net/EventLoopThread.h
+-
+iostream
+-
+functional
+-
+memory
+-
+boost/noncopyable.hpp
+-
+

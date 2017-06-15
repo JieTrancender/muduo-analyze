@@ -1,0 +1,1 @@
+/usr/bin/c++      CMakeFiles/timer5.dir/timer5.o  -o timer5 -rdynamic -lmuduo_net -lmuduo_base -lpthread 
